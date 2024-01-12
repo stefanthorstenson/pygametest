@@ -7,14 +7,20 @@ SCREEN_SIZE = (800, 800)
 NUMBER_OF_TILES = (8,8)
 PLAYER_STARTING_POSITION = np.array([0,0])
 
+# Units
+s_ = 1
+ms_ = 0.001 * s_
+
 class BoardCircle():
     color = (255,255,255)
+    amount_of_square = 1
 
-    def __init__(self,color):
+    def __init__(self,color,amount_of_square):
         self.color = color
+        self.amount_of_square = amount_of_square
 
-    def draw(self):
-        (left, top) = board.getTopLeftCornerOfSquare(self.position)
+    def draw(self,screen,board,position):
+        (left, top) = board.getTopLeftCornerOfSquare(position)
         (square_size_x, square_size_y) = board.getSizeOfRectangle()
 
         center_x = left + square_size_x/2
@@ -22,13 +28,26 @@ class BoardCircle():
         radius = min(square_size_x,square_size_y)/2*self.amount_of_square
         pygame.draw.circle(screen, self.color, (center_x, center_y), radius)  
 
+class Enemy():
+    position = np.array([0,0])
+    moving_period = 1000 * ms_
+    draw_type = BoardCircle(color=(255,0,0),amount_of_square=0.7)
+
+    def __init__(self,position):
+        self.position = position
+
+    def update(self):
+        return None
+    
+    def draw(self,screen,board):
+        self.draw_type.draw(screen,board,self.position)
+
 class Player():
     position = np.array([0,0])
     amount_of_square = 0.7
     image = None
     image_rect = None
 
-    # TODO: Use an image https://pygame.readthedocs.io/en/latest/3_image/image.html
     moving_up = False
     moving_down = False
     moving_left = False
@@ -127,7 +146,7 @@ class Board():
                     rectangle_color = self.color_2
                 pygame.draw.rect(screen,rectangle_color,Rect((rectangle_left,rectangle_top),(rectangle_size[0],rectangle_size[1])))
 
-#Initializing 
+# Initialize
 pygame.init()
 
 screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -138,6 +157,9 @@ board = Board(SCREEN_SIZE, NUMBER_OF_TILES)
 
 # Create player
 player = Player("face.jpg",PLAYER_STARTING_POSITION)
+
+# Create enemy
+enemy = Enemy(np.array([5,5]))
 
 # -- Main loop --
 running = True
@@ -150,10 +172,12 @@ while running:
 
     # Update all sprites
     player.update()
+    enemy.update()
 
     # Draw
     board.draw(screen)
     player.draw(screen,board)
+    enemy.draw(screen,board)
 
     # flip() the display to put your work on screen
     pygame.display.flip()
