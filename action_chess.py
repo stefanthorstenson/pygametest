@@ -7,10 +7,26 @@ SCREEN_SIZE = (800, 800)
 NUMBER_OF_TILES = (8,8)
 PLAYER_STARTING_POSITION = np.array([0,0])
 
+class BoardCircle():
+    color = (255,255,255)
+
+    def __init__(self,color):
+        self.color = color
+
+    def draw(self):
+        (left, top) = board.getTopLeftCornerOfSquare(self.position)
+        (square_size_x, square_size_y) = board.getSizeOfRectangle()
+
+        center_x = left + square_size_x/2
+        center_y = top + square_size_y/2
+        radius = min(square_size_x,square_size_y)/2*self.amount_of_square
+        pygame.draw.circle(screen, self.color, (center_x, center_y), radius)  
+
 class Player():
     position = np.array([0,0])
-    color = (255,0,0)
     amount_of_square = 0.7
+    image = None
+    image_rect = None
 
     # TODO: Use an image https://pygame.readthedocs.io/en/latest/3_image/image.html
     moving_up = False
@@ -18,20 +34,28 @@ class Player():
     moving_left = False
     moving_right = False
 
-    def __init__(self):
-        return None
+    def __init__(self,image_file):
+        self.loadImage(image_file)
     
-    def __init__(self,position):
+    def __init__(self,image_file,position):
+        self.loadImage(image_file)
         self.position = position
+
+    def loadImage(self,image_file):
+        self.image = pygame.image.load(image_file)
+        self.image.convert()
+        self.image_rect = self.image.get_rect()
 
     def draw(self,screen,board):
         (left, top) = board.getTopLeftCornerOfSquare(self.position)
         (square_size_x, square_size_y) = board.getSizeOfRectangle()
 
-        center_x = left + square_size_x/2
-        center_y = top + square_size_y/2
-        radius = min(square_size_x,square_size_y)/2*self.amount_of_square
-        pygame.draw.circle(screen, self.color, (center_x, center_y), radius)
+        square_center_x = left + square_size_x / 2
+        square_center_y = top  + square_size_y / 2
+
+        self.image_rect.center = square_center_x, square_center_y
+
+        screen.blit(self.image,self.image_rect)
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -113,7 +137,7 @@ pygame.display.set_caption("Action chess")
 board = Board(SCREEN_SIZE, NUMBER_OF_TILES)
 
 # Create player
-player = Player(PLAYER_STARTING_POSITION)
+player = Player("face.jpg",PLAYER_STARTING_POSITION)
 
 # -- Main loop --
 running = True
