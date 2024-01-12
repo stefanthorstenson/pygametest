@@ -11,6 +11,8 @@ class Player():
     position = np.array([0,0])
     color = (255,0,0)
     amount_of_square = 0.7
+
+    # TODO: Use an image https://pygame.readthedocs.io/en/latest/3_image/image.html
     moving_up = False
     moving_down = False
     moving_left = False
