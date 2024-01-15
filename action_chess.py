@@ -2,6 +2,7 @@
 import pygame, sys
 from pygame.locals import *
 import numpy as np
+import time
 
 SCREEN_SIZE = (800, 800)
 NUMBER_OF_TILES = (8,8)
@@ -11,9 +12,34 @@ PLAYER_STARTING_POSITION = np.array([0,0])
 s_ = 1
 ms_ = 0.001 * s_
 
+
+class TimeToUpdate():
+    # Takes an update period. Call function isTimeToUpdate. It returns true every time that period has passed.
+    # All units are in seconds.
+
+    last_update_time = None
+    update_period = float(0)
+
+    def __init__(self,update_period):
+        self.update_period = update_period
+
+    def isInitialized(self):
+        return self.last_update_time is not None
+
+    def isTimeToUpdate(self):
+        now = time.perf_counter() # To use the same value throughout this function
+        # Return true if object has never been updated
+        if (not self.isInitialized() or 
+                now >= self.last_update_time + self.update_period):
+            self.last_update_time = now
+            return True
+        else:
+            return False
+
+
 class BoardCircle():
     color = (255,255,255)
-    amount_of_square = 1
+    amount_of_square = float(1)
 
     def __init__(self,color,amount_of_square):
         self.color = color
@@ -28,19 +54,29 @@ class BoardCircle():
         radius = min(square_size_x,square_size_y)/2*self.amount_of_square
         pygame.draw.circle(screen, self.color, (center_x, center_y), radius)  
 
+
 class Enemy():
-    position = np.array([0,0])
-    moving_period = 1000 * ms_
+    position = np.array([int(0),int(0)])
+    velocity = np.array([int(0),int(0)])
+    update_counter = None
     draw_type = BoardCircle(color=(255,0,0),amount_of_square=0.7)
 
-    def __init__(self,position):
+    def __init__(self,position,velocity,moving_period):
         self.position = position
+        self.velocity = velocity
+        self.update_counter = TimeToUpdate(moving_period)
 
     def update(self):
-        return None
+        if self.update_counter.isTimeToUpdate():
+            self.position += self.velocity
+            return None
+        else:
+            # Do not update
+            return None
     
     def draw(self,screen,board):
         self.draw_type.draw(screen,board,self.position)
+
 
 class Player():
     position = np.array([0,0])
@@ -108,6 +144,7 @@ class Player():
         if self.position[1] < 0:
             self.position[1] = 0
 
+
 class Board():
     size = (0,0)
     number_of_tiles = (0,0)
@@ -146,6 +183,7 @@ class Board():
                     rectangle_color = self.color_2
                 pygame.draw.rect(screen,rectangle_color,Rect((rectangle_left,rectangle_top),(rectangle_size[0],rectangle_size[1])))
 
+
 # Initialize
 pygame.init()
 
@@ -159,7 +197,7 @@ board = Board(SCREEN_SIZE, NUMBER_OF_TILES)
 player = Player("face.jpg",PLAYER_STARTING_POSITION)
 
 # Create enemy
-enemy = Enemy(np.array([5,5]))
+enemy = Enemy(np.array([0,5]),np.array([1,0]),1000 * ms_)
 
 # -- Main loop --
 running = True
