@@ -3,6 +3,8 @@ import pygame, sys
 from pygame.locals import *
 import numpy as np
 from helpers import * # To not having to type helpers. in front of all helper functions
+from enemy import *
+import figures
 
 SCREEN_SIZE = (800, 800)
 NUMBER_OF_TILES = (8,8)
@@ -13,47 +15,6 @@ s_ = 1
 ms_ = 0.001 * s_
 
 # Classes
-class BoardCircle():
-    color = (255,255,255)
-    amount_of_square = float(1)
-
-    def __init__(self,color,amount_of_square):
-        self.color = color
-        self.amount_of_square = amount_of_square
-
-    def draw(self,screen,board,position):
-        (left, top) = board.getTopLeftCornerOfSquare(position)
-        (square_size_x, square_size_y) = board.getSizeOfRectangle()
-
-        center_x = left + square_size_x/2
-        center_y = top + square_size_y/2
-        radius = min(square_size_x,square_size_y)/2*self.amount_of_square
-        pygame.draw.circle(screen, self.color, (center_x, center_y), radius)  
-
-
-class Enemy():
-    position = np.array([int(0),int(0)])
-    velocity = np.array([int(0),int(0)])
-    update_counter = None
-    draw_type = BoardCircle(color=(255,0,0),amount_of_square=0.7)
-
-    def __init__(self,position,velocity,moving_period):
-        self.position = position
-        self.velocity = velocity
-        self.update_counter = TimeToUpdate(moving_period)
-
-    def update(self):
-        if self.update_counter.isTimeToUpdate():
-            self.position += self.velocity
-            return None
-        else:
-            # Do not update
-            return None
-    
-    def draw(self,screen,board):
-        self.draw_type.draw(screen,board,self.position)
-
-
 class Player():
     position = np.array([0,0])
     amount_of_square = 0.7
@@ -235,7 +196,8 @@ player = Player("face.jpg",PLAYER_STARTING_POSITION)
 game.addPlayer(player)
 
 # Create enemies
-enemy = Enemy(np.array([0,5]),np.array([1,0]),1000 * ms_)
+red_circle = figures.BoardCircle((255,0,0),0.7)
+enemy = Enemy(np.array([0,5]),np.array([1,0]),1000 * ms_,red_circle)
 game.addEnemy(enemy)
 
 # -- Main loop --
