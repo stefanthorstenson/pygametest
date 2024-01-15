@@ -157,7 +157,7 @@ class ActionChessGame():
         self.player.update()
 
         for enemy in self.enemies:
-            enemy.update(self.board)
+            enemy.update()
 
         self.removeEnemiesNotOnBoard()
 
@@ -198,7 +198,10 @@ game.addPlayer(player)
 
 # Create enemies
 red_circle = figures.BoardCircle((255,0,0),0.7)
-enemy = BounceEnemy(np.array([0,5]),np.array([1,0]),300 * ms_,red_circle)
+blue_circle = figures.BoardCircle((0,0,255),0.5)
+enemy = BounceEnemy(np.array([0,5]),np.array([1,0]),300 * ms_,red_circle,game.board)
+game.addEnemy(enemy)
+enemy = HomingEnemy(np.array([7,7]),500 * ms_,blue_circle,game.player)
 game.addEnemy(enemy)
 
 # -- Main loop --
