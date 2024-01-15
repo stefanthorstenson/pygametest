@@ -2,7 +2,7 @@
 import pygame, sys
 from pygame.locals import *
 import numpy as np
-import time
+from helpers import * # To not having to type helpers. in front of all helper functions
 
 SCREEN_SIZE = (800, 800)
 NUMBER_OF_TILES = (8,8)
@@ -12,36 +12,7 @@ PLAYER_STARTING_POSITION = np.array([0,0])
 s_ = 1
 ms_ = 0.001 * s_
 
-# Helpers
-def isPositionEqual(position_1,position_2):
-    # Takes numpy.array as input
-    return np.array_equal(position_1,position_2)
-
 # Classes
-class TimeToUpdate():
-    # Takes an update period. Call function isTimeToUpdate. It returns true every time that period has passed.
-    # All units are in seconds.
-
-    last_update_time = None
-    update_period = float(0)
-
-    def __init__(self,update_period):
-        self.update_period = update_period
-
-    def isInitialized(self):
-        return self.last_update_time is not None
-
-    def isTimeToUpdate(self):
-        now = time.perf_counter() # To use the same value throughout this function
-        # Return true if object has never been updated
-        if (not self.isInitialized() or 
-                now >= self.last_update_time + self.update_period):
-            self.last_update_time = now
-            return True
-        else:
-            return False
-
-
 class BoardCircle():
     color = (255,255,255)
     amount_of_square = float(1)
