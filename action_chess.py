@@ -111,7 +111,8 @@ class Board():
 
     def isPositionWithinBoard(self,position):
         if (position[0] < self.number_of_tiles[0] and
-                position[1] < self.number_of_tiles[1]): # Board has zero indentation. Both values need to been within board
+                position[1] < self.number_of_tiles[1] and
+                position[0] >= 0 and position[1] >= 0): # Board has zero indentation. Both values need to been within board
             return True
         else:
             return False
@@ -156,7 +157,7 @@ class ActionChessGame():
         self.player.update()
 
         for enemy in self.enemies:
-            enemy.update()
+            enemy.update(self.board)
 
         self.removeEnemiesNotOnBoard()
 
@@ -197,7 +198,7 @@ game.addPlayer(player)
 
 # Create enemies
 red_circle = figures.BoardCircle((255,0,0),0.7)
-enemy = Enemy(np.array([0,5]),np.array([1,0]),1000 * ms_,red_circle)
+enemy = BounceEnemy(np.array([0,5]),np.array([1,0]),300 * ms_,red_circle)
 game.addEnemy(enemy)
 
 # -- Main loop --

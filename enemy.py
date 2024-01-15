@@ -12,13 +12,12 @@ class Enemy():
         self.update_counter = TimeToUpdate(moving_period)
         self.draw_type = draw_type
 
-    def update(self):
+    def update(self,board):
         if self.update_counter.isTimeToUpdate():
             self.position += self.velocity
-            return None
         else:
             # Do not update
-            return None
+            pass
     
     def draw(self,screen,board):
         self.draw_type.draw(screen,board,self.position)
@@ -27,4 +26,17 @@ class BounceEnemy(Enemy):
     draw_type = None
     # An enemy that bounces off surfaces
     def __init__(self,position,velocity,moving_period,draw_type):
-        super().__init__(position,velocity,moving_period)
+        super().__init__(position,velocity,moving_period,draw_type)
+
+    def update(self,board):
+        if self.update_counter.isTimeToUpdate():
+            new_position = self.position + self.velocity
+            if not board.isPositionWithinBoard(new_position):
+                # Reverse direction
+                self.velocity = -self.velocity
+                new_position = self.position + self.velocity
+            self.position = new_position
+        else:
+            # Do not update
+            pass
+        
