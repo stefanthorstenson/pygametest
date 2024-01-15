@@ -12,7 +12,12 @@ PLAYER_STARTING_POSITION = np.array([0,0])
 s_ = 1
 ms_ = 0.001 * s_
 
+# Helpers
+def isPositionEqual(position_1,position_2):
+    # Takes numpy.array as input
+    return np.array_equal(position_1,position_2)
 
+# Classes
 class TimeToUpdate():
     # Takes an update period. Call function isTimeToUpdate. It returns true every time that period has passed.
     # All units are in seconds.
@@ -83,6 +88,7 @@ class Player():
     amount_of_square = 0.7
     image = None
     image_rect = None
+    alive = True
 
     moving_up = False
     moving_down = False
@@ -111,6 +117,10 @@ class Player():
         self.image_rect.center = square_center_x, square_center_y
 
         screen.blit(self.image,self.image_rect)
+
+    def hit(self):
+        # Player has been hit by enemy
+        self.alive = False
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -211,14 +221,26 @@ class ActionChessGame():
 
     def update(self):
         # Update all objects
-        player.update()
+        self.player.update()
 
         for enemy in self.enemies:
             enemy.update()
 
         self.removeEnemiesNotOnBoard()
 
-        print(self.enemies.__len__()) #DEBUG
+        if self.isPlayerHit():
+            self.player.hit()
+
+    def isPlayerHit(self):
+        # Loop through all enemies to see if some has same position as player
+        for enemy in self.enemies:
+            if isPositionEqual(self.player.position,enemy.position):
+                return True
+        
+        return False # If we've come this far, no enemy has hit player
+
+    def isPlayerAlive(self):
+        return self.player.alive
 
     def removeEnemiesNotOnBoard(self):
         for enemy in self.enemies:
@@ -256,6 +278,8 @@ while running:
 
     game.update()
     game.draw()
+    if not game.isPlayerAlive():
+        running = False
 
     # flip() the display to put your work on screen
     pygame.display.flip()
