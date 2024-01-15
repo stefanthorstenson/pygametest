@@ -169,7 +169,7 @@ class Board():
 
     def isPositionWithinBoard(self,position):
         if (position[0] < self.number_of_tiles[0] and
-                position[1] < self.number_of_tiles[1]): # Both values need to been within board
+                position[1] < self.number_of_tiles[1]): # Board has zero indentation. Both values need to been within board
             return True
         else:
             return False
@@ -191,22 +191,59 @@ class Board():
                 pygame.draw.rect(screen,rectangle_color,Rect((rectangle_left,rectangle_top),(rectangle_size[0],rectangle_size[1])))
 
 
+class ActionChessGame():
+    screen = None
+    board = None
+    player = None
+    enemies = []
+
+    def __init__(self,screen_size,number_of_tiles):
+        self.screen = pygame.display.set_mode(screen_size)
+        pygame.display.set_caption("Action chess")
+        self.board = Board(screen_size,number_of_tiles)
+        return None
+
+    def addPlayer(self,player):
+        self.player = player
+
+    def addEnemy(self,enemy):
+        self.enemies.append(enemy)
+
+    def update(self):
+        # Update all objects
+        player.update()
+
+        for enemy in self.enemies:
+            enemy.update()
+
+        self.removeEnemiesNotOnBoard()
+
+        print(self.enemies.__len__()) #DEBUG
+
+    def removeEnemiesNotOnBoard(self):
+        for enemy in self.enemies:
+            if not self.board.isPositionWithinBoard(enemy.position):
+                self.enemies.remove(enemy)
+                # TODO: Garbage collect enemy?
+
+    def draw(self):
+        self.board.draw(self.screen)
+        self.player.draw(self.screen,self.board)
+        for enemy in self.enemies:
+            enemy.draw(self.screen,self.board)
+
+
 # Initialize
 pygame.init()
-
-screen = pygame.display.set_mode(SCREEN_SIZE)
-pygame.display.set_caption("Action chess")
-
-# Create board
-board = Board(SCREEN_SIZE, NUMBER_OF_TILES)
+game = ActionChessGame(SCREEN_SIZE,NUMBER_OF_TILES)
 
 # Create player
 player = Player("face.jpg",PLAYER_STARTING_POSITION)
+game.addPlayer(player)
 
 # Create enemies
-enemies = []
 enemy = Enemy(np.array([0,5]),np.array([1,0]),1000 * ms_)
-enemies.append(enemy)
+game.addEnemy(enemy)
 
 # -- Main loop --
 running = True
@@ -217,21 +254,8 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Update all sprites
-    player.update()
-    for enemy in enemies:
-        enemy.update()
-
-    # Remove enemies no longer on board
-    for enemy in enemies:
-        if not board.isPositionWithinBoard(enemy.position):
-            enemies.remove(enemy)
-            # TODO: Garbage collect enemy
-
-    # Draw
-    board.draw(screen)
-    player.draw(screen,board)
-    enemy.draw(screen,board)
+    game.update()
+    game.draw()
 
     # flip() the display to put your work on screen
     pygame.display.flip()
