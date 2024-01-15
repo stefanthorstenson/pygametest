@@ -241,10 +241,9 @@ game.addEnemy(enemy)
 # -- Main loop --
 running = True
 while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
+    # Poll for events
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == pygame.QUIT: # User clicked x on window
             running = False
 
     game.update()
