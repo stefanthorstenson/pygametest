@@ -20,6 +20,7 @@ class Player():
     amount_of_square = 0.7
     image = None
     image_rect = None
+    board = None
     alive = True
 
     moving_up = False
@@ -27,12 +28,10 @@ class Player():
     moving_left = False
     moving_right = False
 
-    def __init__(self,image_file):
-        self.loadImage(image_file)
-    
-    def __init__(self,image_file,position):
+    def __init__(self,image_file,position,board):
         self.loadImage(image_file)
         self.position = position
+        self.board = board
 
     def loadImage(self,image_file):
         self.image = pygame.image.load(image_file)
@@ -54,37 +53,38 @@ class Player():
         # Player has been hit by enemy
         self.alive = False
 
+    def move(self,velocity):
+        # Move within limits of the board
+        new_position = self.position + velocity
+        if self.board.isPositionWithinBoard(new_position):
+            self.position = new_position
+
     def update(self):
         keys = pygame.key.get_pressed()
         # Make sure key is released before moving is triggered again
         if keys[pygame.K_w] and not self.moving_up:
-            self.position[1] -= 1
+            self.move(np.array([0,-1]))
             self.moving_up = True
         elif not keys[pygame.K_w]:
             self.moving_up = False
 
         if keys[pygame.K_s] and not self.moving_down:
-            self.position[1] += 1
+            self.move(np.array([0,1]))
             self.moving_down = True
         elif not keys[pygame.K_s]:
             self.moving_down = False
 
         if keys[pygame.K_a] and not self.moving_left:
-            self.position[0] -= 1
+            self.move(np.array([-1,0]))
             self.moving_left = True
         elif not keys[pygame.K_a]:
             self.moving_left = False
 
         if keys[pygame.K_d] and not self.moving_right:
-            self.position[0] += 1
+            self.move(np.array([1,0]))
             self.moving_right = True
         elif not keys[pygame.K_d]:
             self.moving_right = False
-
-        if self.position[0] < 0:
-            self.position[0] = 0
-        if self.position[1] < 0:
-            self.position[1] = 0
 
 
 class Board():
@@ -154,7 +154,8 @@ class ActionChessGame():
 
     def update(self):
         # Update all objects
-        self.player.update()
+        if self.player.alive:
+            self.player.update()
 
         for enemy in self.enemies:
             enemy.update()
@@ -193,7 +194,7 @@ pygame.init()
 game = ActionChessGame(SCREEN_SIZE,NUMBER_OF_TILES)
 
 # Create player
-player = Player("face.jpg",PLAYER_STARTING_POSITION)
+player = Player("face.jpg",PLAYER_STARTING_POSITION,game.board)
 game.addPlayer(player)
 
 # Create enemies
@@ -214,8 +215,6 @@ while running:
 
     game.update()
     game.draw()
-    if not game.isPlayerAlive():
-        running = False
 
     # flip() the display to put your work on screen
     pygame.display.flip()
