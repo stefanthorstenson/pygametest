@@ -167,6 +167,13 @@ class Board():
         top  = square[1] * rectangle_size[1]
         return (left, top)
 
+    def isPositionWithinBoard(self,position):
+        if (position[0] < self.number_of_tiles[0] and
+                position[1] < self.number_of_tiles[1]): # Both values need to been within board
+            return True
+        else:
+            return False
+        
     def isEven(self,number):
         return (number % 2) == 0
     
@@ -196,8 +203,10 @@ board = Board(SCREEN_SIZE, NUMBER_OF_TILES)
 # Create player
 player = Player("face.jpg",PLAYER_STARTING_POSITION)
 
-# Create enemy
+# Create enemies
+enemies = []
 enemy = Enemy(np.array([0,5]),np.array([1,0]),1000 * ms_)
+enemies.append(enemy)
 
 # -- Main loop --
 running = True
@@ -210,7 +219,14 @@ while running:
 
     # Update all sprites
     player.update()
-    enemy.update()
+    for enemy in enemies:
+        enemy.update()
+
+    # Remove enemies no longer on board
+    for enemy in enemies:
+        if not board.isPositionWithinBoard(enemy.position):
+            enemies.remove(enemy)
+            # TODO: Garbage collect enemy
 
     # Draw
     board.draw(screen)
