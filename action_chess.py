@@ -9,6 +9,7 @@ import figures
 SCREEN_SIZE = (800, 800)
 NUMBER_OF_TILES = (8,8)
 PLAYER_STARTING_POSITION = np.array([0,0])
+COIN_SIZE = 0.6
 
 # Units
 s_ = 1
@@ -22,6 +23,7 @@ class Player():
     image_rect = None
     board = None
     alive = True
+    points = 0
 
     moving_up = False
     moving_down = False
@@ -38,9 +40,9 @@ class Player():
         self.image.convert()
         self.image_rect = self.image.get_rect()
 
-    def draw(self,screen,board):
-        (left, top) = board.getTopLeftCornerOfSquare(self.position)
-        (square_size_x, square_size_y) = board.getSizeOfRectangle()
+    def draw(self,screen):
+        (left, top) = self.board.getTopLeftCornerOfSquare(self.position)
+        (square_size_x, square_size_y) = self.board.getSizeOfRectangle()
 
         square_center_x = left + square_size_x / 2
         square_center_y = top  + square_size_y / 2
@@ -86,6 +88,17 @@ class Player():
         elif not keys[pygame.K_d]:
             self.moving_right = False
 
+
+class Point():
+    position = np.array([0,0])
+    figure = None
+
+    def __init__(self,position,figure):
+        self.position = position
+        self.figure = figure
+
+    def draw(self,screen,board):
+        self.figure.draw(screen,board,self.position)
 
 class Board():
     size = (0,0)
@@ -139,6 +152,7 @@ class ActionChessGame():
     board = None
     player = None
     enemies = []
+    points = []
 
     def __init__(self,screen_size,number_of_tiles):
         self.screen = pygame.display.set_mode(screen_size)
@@ -151,6 +165,9 @@ class ActionChessGame():
 
     def addEnemy(self,enemy):
         self.enemies.append(enemy)
+
+    def addPoint(self,point):
+        self.points.append(point)
 
     def update(self):
         # Update all objects
@@ -184,10 +201,11 @@ class ActionChessGame():
 
     def draw(self):
         self.board.draw(self.screen)
-        self.player.draw(self.screen,self.board)
+        self.player.draw(self.screen)
         for enemy in self.enemies:
             enemy.draw(self.screen,self.board)
-
+        for point in self.points:
+            point.draw(self.screen,self.board)
 
 # Initialize
 pygame.init()
@@ -204,6 +222,11 @@ enemy = BounceEnemy(np.array([0,5]),np.array([1,0]),300 * ms_,red_circle,game.bo
 game.addEnemy(enemy)
 enemy = HomingEnemy(np.array([7,7]),500 * ms_,blue_circle,game.player)
 game.addEnemy(enemy)
+
+# Create points
+coin_image = figures.FigureImage("coin.png",COIN_SIZE,game.board)
+point = Point(np.array([6,7]),coin_image)
+game.addPoint(point)
 
 # -- Main loop --
 running = True
