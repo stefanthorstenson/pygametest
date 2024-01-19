@@ -5,11 +5,14 @@ import numpy as np
 from helpers import * # To not having to type helpers. in front of all helper functions
 from enemy import *
 import figures
+import random
 
 SCREEN_SIZE = (800, 800)
 NUMBER_OF_TILES = (8,8)
 PLAYER_STARTING_POSITION = np.array([0,0])
 COIN_SIZE = 0.6
+TEXT_COLOUR = (200,70,70)
+TEXT_SIZE = 40
 
 # Units
 s_ = 1
@@ -57,7 +60,6 @@ class Player():
 
     def increaseScore(self):
         self.score += 1
-        print(self.score) # DEBUG
 
     def move(self,velocity):
         # Move within limits of the board
@@ -155,6 +157,7 @@ class ActionChessGame():
     screen = None
     board = None
     player = None
+    point_figure = None
     enemies = []
     points = []
 
@@ -170,8 +173,26 @@ class ActionChessGame():
     def addEnemy(self,enemy):
         self.enemies.append(enemy)
 
-    def addPoint(self,point):
+    def setPointFigure(self,point_figure):
+        self.point_figure = point_figure
+
+    def spawnPoint(self):
+        position = self.getRandomPosition()
+        point = Point(position,self.point_figure)
         self.points.append(point)
+
+    def getRandomPosition(self):
+        # Gives a random position that is not on the player
+        free_position_found = False
+        while not free_position_found:
+            x = random.randint(0,NUMBER_OF_TILES[0] - 1)
+            y = random.randint(0,NUMBER_OF_TILES[1] - 1)
+            position = np.array([x,y])
+            if not isPositionEqual(position,self.player.position):
+                free_position_found = True
+
+        return position
+
 
     def update(self):
         # Update all objects
@@ -187,9 +208,10 @@ class ActionChessGame():
             self.player.hit()
 
         point = self.PointPlayerIsOn()
-        if point is not None:
+        if point is not None: # Player scored
             self.player.increaseScore()
             self.points.remove(point)
+            self.spawnPoint()
 
     def isPlayerHit(self):
         return isCollision(self.player,self.enemies)[0] # Take only the boolean. We don't care which enemy hit player
@@ -215,6 +237,14 @@ class ActionChessGame():
         for point in self.points:
             point.draw(self.screen,self.board)
 
+        self.drawScore()
+
+    def drawScore(self):
+        score_font = pygame.font.SysFont("Verdana", TEXT_SIZE)     
+        score_surface  = score_font.render(str(self.player.score), True, TEXT_COLOUR)
+        self.screen.blit(score_surface, (SCREEN_SIZE[0] - self.board.getSizeOfRectangle()[0]/1.7, 2)) # Top right, almost
+
+
 # Initialize
 pygame.init()
 game = ActionChessGame(SCREEN_SIZE,NUMBER_OF_TILES)
@@ -233,8 +263,8 @@ game.addEnemy(enemy)
 
 # Create points
 coin_image = figures.FigureImage("coin.png",COIN_SIZE,game.board)
-point = Point(np.array([6,7]),coin_image)
-game.addPoint(point)
+game.setPointFigure(coin_image)
+game.spawnPoint()
 
 # -- Main loop --
 running = True
