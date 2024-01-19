@@ -23,7 +23,7 @@ class Player():
     image_rect = None
     board = None
     alive = True
-    points = 0
+    score = 0
 
     moving_up = False
     moving_down = False
@@ -54,6 +54,10 @@ class Player():
     def hit(self):
         # Player has been hit by enemy
         self.alive = False
+
+    def increaseScore(self):
+        self.score += 1
+        print(self.score) # DEBUG
 
     def move(self,velocity):
         # Move within limits of the board
@@ -182,13 +186,17 @@ class ActionChessGame():
         if self.isPlayerHit():
             self.player.hit()
 
+        point = self.PointPlayerIsOn()
+        if point is not None:
+            self.player.increaseScore()
+            self.points.remove(point)
+
     def isPlayerHit(self):
-        # Loop through all enemies to see if some has same position as player
-        for enemy in self.enemies:
-            if isPositionEqual(self.player.position,enemy.position):
-                return True
-        
-        return False # If we've come this far, no enemy has hit player
+        return isCollision(self.player,self.enemies)[0] # Take only the boolean. We don't care which enemy hit player
+
+    def PointPlayerIsOn(self):
+        is_collision, point = isCollision(self.player,self.points)
+        return point
 
     def isPlayerAlive(self):
         return self.player.alive

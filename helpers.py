@@ -5,6 +5,15 @@ def isPositionEqual(position_1,position_2):
     # Takes numpy.array as input
     return np.array_equal(position_1,position_2)
 
+def isCollision(object,list_of_objects):
+    # Return a boolean and the matching object from list of objects, if any
+    # Loop through all objects to see if some has same position as first object
+    for object_2 in list_of_objects:
+        if isPositionEqual(object.position,object_2.position):
+            return True, object_2
+    
+    return False, None # If we've come this far, no object overlaps
+
 # Classes
 class TimeToUpdate():
     # Takes an update period. Call function isTimeToUpdate. It returns true every time that period has passed.
