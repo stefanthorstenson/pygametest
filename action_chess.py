@@ -255,10 +255,10 @@ game.addPlayer(player)
 
 # Create enemies
 red_circle = figures.BoardCircle((255,0,0),0.7)
-blue_circle = figures.BoardCircle((0,0,255),0.5)
+velociraptor = figures.FigureImage("velociraptor.png",0.9,game.board)
 enemy = BounceEnemy(np.array([0,5]),np.array([1,0]),300 * ms_,red_circle,game.board)
 game.addEnemy(enemy)
-enemy = HomingEnemy(np.array([7,7]),500 * ms_,blue_circle,game.player)
+enemy = HomingEnemy(np.array([7,7]),500 * ms_,velociraptor,game.player)
 game.addEnemy(enemy)
 
 # Create points
