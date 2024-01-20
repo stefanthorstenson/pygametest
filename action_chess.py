@@ -53,6 +53,9 @@ class Player():
         # Player has been hit by enemy
         self.alive = False
 
+    def kill(self):
+        self.alive = False
+
     def increaseScore(self):
         self.score += 1
 
@@ -225,6 +228,10 @@ class ActionChessGame():
             self.points.remove(point)
             self.spawnPoint()
             self.enemy_player.setTarget(self.getLastPoint())
+
+        # Game over if enemy player has more points than player
+        if self.enemy_player.score > self.player.score:
+            self.player.kill()
 
 
     def isPlayerHit(self):
