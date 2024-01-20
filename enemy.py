@@ -19,6 +19,12 @@ class Enemy():
             # Do not update
             pass
     
+    def setMovingPeriod(self,moving_period):
+        self.update_counter.setUpdatePeriod(moving_period)
+
+    def getMovingPeriod(self):
+        return self.update_counter.update_period
+
     def draw(self,screen,board):
         self.draw_type.draw(screen,board,self.position)
 
@@ -53,6 +59,9 @@ class HomingEnemy(Enemy):
         super().__init__(position,np.array([0,0]),moving_period,draw_type)
         self.player = player
 
+    def setTarget(self,target):
+        self.player = target
+
     def update(self):
         if self.update_counter.isTimeToUpdate():
             vector_to_player = self.player.position - self.position
@@ -63,3 +72,12 @@ class HomingEnemy(Enemy):
             else:
                 # Move in y direction
                 self.position += np.array([0,np.sign(vector_to_player[1])])
+
+class EnemyPlayer(HomingEnemy):
+    score = 0
+
+    def __init__(self,position,moving_period,draw_type,target):
+        super().__init__(position,moving_period,draw_type,target)
+
+    def increaseScore(self):
+        self.score = self.score + 1

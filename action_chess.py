@@ -11,8 +11,10 @@ SCREEN_SIZE = (800, 800)
 NUMBER_OF_TILES = (8,8)
 PLAYER_STARTING_POSITION = np.array([0,0])
 COIN_SIZE = 0.6
-TEXT_COLOUR = (200,70,70)
+TEXT_COLOUR_PLAYER = (25,250,29)
+TEXT_COLOUR_ENEMY = (219,35,35)
 TEXT_SIZE = 40
+TEXT_SIZE_GAME_OVER = 100
 
 # Units
 s_ = 1
@@ -27,6 +29,7 @@ class Player():
     board = None
     alive = True
     score = 0
+    draw_figure = None
 
     moving_up = False
     moving_down = False
@@ -34,7 +37,7 @@ class Player():
     moving_right = False
 
     def __init__(self,image_file,position,board):
-        self.loadImage(image_file)
+        self.draw_figure = figures.FigureImage("velociraptor.png",0.9,board)
         self.position = position
         self.board = board
 
@@ -44,15 +47,7 @@ class Player():
         self.image_rect = self.image.get_rect()
 
     def draw(self,screen):
-        (left, top) = self.board.getTopLeftCornerOfSquare(self.position)
-        (square_size_x, square_size_y) = self.board.getSizeOfRectangle()
-
-        square_center_x = left + square_size_x / 2
-        square_center_y = top  + square_size_y / 2
-
-        self.image_rect.center = square_center_x, square_center_y
-
-        screen.blit(self.image,self.image_rect)
+        self.draw_figure.draw(screen,self.board,self.position)
 
     def hit(self):
         # Player has been hit by enemy
@@ -159,6 +154,7 @@ class ActionChessGame():
     player = None
     point_figure = None
     enemies = []
+    enemy_player = None
     points = []
 
     def __init__(self,screen_size,number_of_tiles):
@@ -173,6 +169,9 @@ class ActionChessGame():
     def addEnemy(self,enemy):
         self.enemies.append(enemy)
 
+    def setEnemyPlayer(self,enemy_player):
+        self.enemy_player = enemy_player
+
     def setPointFigure(self,point_figure):
         self.point_figure = point_figure
 
@@ -181,6 +180,9 @@ class ActionChessGame():
         point = Point(position,self.point_figure)
         self.points.append(point)
 
+    def getLastPoint(self):
+        return self.points[-1]
+    
     def getRandomPosition(self):
         # Gives a random position that is not on the player
         free_position_found = False
@@ -202,6 +204,8 @@ class ActionChessGame():
         for enemy in self.enemies:
             enemy.update()
 
+        self.enemy_player.update()
+
         self.removeEnemiesNotOnBoard()
 
         if self.isPlayerHit():
@@ -212,12 +216,26 @@ class ActionChessGame():
             self.player.increaseScore()
             self.points.remove(point)
             self.spawnPoint()
+            self.enemy_player.setTarget(self.getLastPoint())
+            self.enemy_player.setMovingPeriod(self.enemy_player.getMovingPeriod()*0.95)
+
+        point = self.PointEnemyPlayerIsOn()
+        if point is not None: # Player enemy scored
+            self.enemy_player.increaseScore()
+            self.points.remove(point)
+            self.spawnPoint()
+            self.enemy_player.setTarget(self.getLastPoint())
+
 
     def isPlayerHit(self):
         return isCollision(self.player,self.enemies)[0] # Take only the boolean. We don't care which enemy hit player
 
     def PointPlayerIsOn(self):
         is_collision, point = isCollision(self.player,self.points)
+        return point
+    
+    def PointEnemyPlayerIsOn(self):
+        is_collision, point = isCollision(self.enemy_player,self.points)
         return point
 
     def isPlayerAlive(self):
@@ -236,13 +254,24 @@ class ActionChessGame():
             enemy.draw(self.screen,self.board)
         for point in self.points:
             point.draw(self.screen,self.board)
+        self.enemy_player.draw(self.screen,self.board)
 
         self.drawScore()
 
     def drawScore(self):
         score_font = pygame.font.SysFont("Verdana", TEXT_SIZE)     
-        score_surface  = score_font.render(str(self.player.score), True, TEXT_COLOUR)
+        # Player score
+        score_surface  = score_font.render(str(self.player.score), True, TEXT_COLOUR_PLAYER)
         self.screen.blit(score_surface, (SCREEN_SIZE[0] - self.board.getSizeOfRectangle()[0]/1.7, 2)) # Top right, almost
+        # Enemy score
+        score_surface  = score_font.render(str(self.enemy_player.score), True, TEXT_COLOUR_ENEMY)
+        self.screen.blit(score_surface, (SCREEN_SIZE[0] - self.board.getSizeOfRectangle()[0]/1.7, 50)) # Top right, almost
+
+    def drawGameOver(self):
+        score_font = pygame.font.SysFont("Verdana", TEXT_SIZE_GAME_OVER)     
+        # Player score
+        score_surface  = score_font.render("GAME OVER", True, TEXT_COLOUR_ENEMY)
+        self.screen.blit(score_surface, (SCREEN_SIZE[0]/2, SCREEN_SIZE[1]/2))
 
 
 # Initialize
@@ -250,21 +279,22 @@ pygame.init()
 game = ActionChessGame(SCREEN_SIZE,NUMBER_OF_TILES)
 
 # Create player
-player = Player("face.jpg",PLAYER_STARTING_POSITION,game.board)
+player = Player("velociraptor.png",PLAYER_STARTING_POSITION,game.board)
 game.addPlayer(player)
 
+# Create points
+point_image = figures.FigureImage("scared_face.jpg",COIN_SIZE,game.board)
+game.setPointFigure(point_image)
+game.spawnPoint()
+
 # Create enemies
-red_circle = figures.BoardCircle((255,0,0),0.7)
-velociraptor = figures.FigureImage("velociraptor.png",0.9,game.board)
+red_circle = figures.BoardCircle((242,51,140),0.7)
+t_rex = figures.FigureImage("t-rex.png",0.9,game.board)
 enemy = BounceEnemy(np.array([0,5]),np.array([1,0]),300 * ms_,red_circle,game.board)
 game.addEnemy(enemy)
-enemy = HomingEnemy(np.array([7,7]),500 * ms_,velociraptor,game.player)
-game.addEnemy(enemy)
+enemy_player = EnemyPlayer(np.array([7,7]),1000 * ms_,t_rex,game.getLastPoint())
+game.setEnemyPlayer(enemy_player)
 
-# Create points
-coin_image = figures.FigureImage("coin.png",COIN_SIZE,game.board)
-game.setPointFigure(coin_image)
-game.spawnPoint()
 
 # -- Main loop --
 running = True
@@ -276,6 +306,8 @@ while running:
 
     game.update()
     game.draw()
+    if not game.isPlayerAlive():
+        game.drawGameOver()
 
     # flip() the display to put your work on screen
     pygame.display.flip()

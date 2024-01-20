@@ -37,3 +37,6 @@ class TimeToUpdate():
             return True
         else:
             return False
+
+    def setUpdatePeriod(self,update_period):
+        self.update_period = update_period
